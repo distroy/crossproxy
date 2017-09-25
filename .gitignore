@@ -1,0 +1,11 @@
+.*
+!.gitignore
+
+tags
+
+*.pyc
+*.log
+*.vim
+*.stackdump
+
+test[._]*

@@ -45,14 +45,12 @@ class TimerWheel(object):
         self.__current = 0x7fffff00
         self.__expires = Timer()
 
-        self.__cache = []
-
         def init_tv(size):
             tv = []
             for i in range(size):
                 t = Timer()
                 tv.append(t)
-                self.__cache.append(t)
+            return tv
         self.__tv0 = init_tv(1 << 8)
         self.__tv1 = init_tv(1 << 6)
         self.__tv2 = init_tv(1 << 6)

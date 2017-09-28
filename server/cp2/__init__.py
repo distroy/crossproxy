@@ -61,6 +61,9 @@ class Enity(object):
             self.conn_proxy = None
 
     def send_connect(self):
+        c = self.conn_proxy
+        log.debug(0, '*%d connect: %s', c.index, c.addr.text)
+
         msg = Message(['connect req', self.key])
         log.debug(0, 'send message: %s', msg)
 
@@ -68,7 +71,9 @@ class Enity(object):
         if not buff:
             log.error(0, 'invalid message: %s', msg)
             return
-        self.conn_proxy.wev.buff = buff
+
+        c.wev.buff = struct.pack('I', len(buff)) + buff
+        c.wev.handler = lambda: self.send()
         self.send()
 
     def send(self):
@@ -83,6 +88,8 @@ class Enity(object):
                 return
 
             c.wev.buff = buff[size:]
+
+        buff = c.wev.buff
         if len(buff) > 0:
             c.wev.handler = lambda: self.send()
             del_conn(c, READ_EVENT)
@@ -93,7 +100,7 @@ class Enity(object):
             add_conn(c, READ_EVENT)
 
     def read_bin(self):
-        c = self.conn
+        c = self.conn_proxy
         r, buff = c.recv(4096)
         if r != 0:
             if r == 1:
@@ -107,7 +114,7 @@ class Enity(object):
         if len(buff) < size0:
             return ''
 
-        size1, = struct.unpack('I', buff[0: size0)
+        size1, = struct.unpack('I', buff[0: size0])
         if len(buff) < size1 + size0:
             return ''
 
@@ -127,7 +134,8 @@ class Enity(object):
             self.close()
             return
 
-        log.debug(0, 'read message: %s', msg)
+        c = self.conn_proxy
+        log.debug(0, '*%d read message: %s', c.index, msg)
 
         cmd = msg.get(0)
         if cmd != 'connect rsp':

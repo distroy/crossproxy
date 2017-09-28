@@ -44,7 +44,7 @@ def main(opts, args):
     if not log.set_level(opts.log):
         log.error(0, 'invalid log level: %s', opts.log)
 
-    addr_listen = Addr()
+    addr = Addr()
     if not addr.parse_listening(opts.listen):
         return -1
 
@@ -69,27 +69,21 @@ def main(opts, args):
         l.close()
         l = None
 
-    if not opts.debug:
-        daemon.daemon()
-
     if not init_event():
         log.error(0, 'init event module failed')
         return -1
 
-    proxy = Addr()
-    target = Addr()
-    if not proxy.parse(opts.proxy):
-        return -1
-    if not target.parse(opts.target):
-        return -1
-    if not opts.key:
-        return -1
+    if not opts.debug:
+        daemon.daemon()
 
     if not opts.debug:
-        log.dup_stderr()
+        # may be failed in cygwin, wait minutes
+        l = Listening()
+        if not l.listen(addr):
+            return -1
 
-    e = server.Enity(proxy, target, opts.key)
-    e.init()
+    l.handler = handler
+    add_conn(l, READ_EVENT)
 
     log.info(0, 'start success')
 

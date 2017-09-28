@@ -42,7 +42,6 @@ class Enity(object):
                 time.sleep(1)
                 continue
 
-            self.
             break;
         self.conn.nonblocking()
         self.send_msg(['register req', self.key])

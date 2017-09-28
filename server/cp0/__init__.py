@@ -31,7 +31,7 @@ def get_handler(opts, args):
 class Enity(object):
 
     def __init__(self, c):
-        DO_MAP = {
+        self.DO_MAP = {
             'heartbeat req': Enity.do_heartbeat,
             'register req': Enity.do_register,
             'connect req': Enity.do_connect,
@@ -139,7 +139,7 @@ class Enity(object):
         log.debug(0, 'read message: %s', msg)
 
         cmd = msg.get(0)
-        if not self.do_map.has_key(cmd):
+        if not self.DO_MAP.has_key(cmd):
             log.error(0, 'invalid command. msg:%s', msg)
             return
 

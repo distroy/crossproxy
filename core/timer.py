@@ -57,6 +57,14 @@ class TimerWheel(object):
         self.__tv3 = init_tv(1 << 6)
         self.__tv4 = init_tv(1 << 6)
 
+    def __del__(self):
+        self.__expires = None
+        self.__tv0 = None
+        self.__tv1 = None
+        self.__tv2 = None
+        self.__tv3 = None
+        self.__tv4 = None
+
     def add_timer(self, t, jiffies):
         t.remove()
 
@@ -138,7 +146,7 @@ class TimerWheel(object):
             q = self.__tv0[j]
             self.__add_queue(q)
 
-        self.__rebuild_tvs()
+        self.__rebuild_tvs(jiffies)
 
         while not self.__expires.empty():
             t = self.__expires.next

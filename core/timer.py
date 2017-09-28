@@ -154,10 +154,9 @@ class TimerWheel(object):
 
         def get_tv_pos(tv):
             data['jiffies'] /= len(tv)
-            if (data['jiffies'] == 0) {
+            if data['jiffies'] == 0:
                 data['current'] %= len(tv)
                 return tv[data['current']]
-            }
             data['current'] /= len(tv)
             return None
 
@@ -184,8 +183,10 @@ __tw = TimerWheel()
 def add_timer(t, jiffies):
     return __tw.add_timer(t, jiffies)
 
+
 def del_timer(t):
     return __tw.del_timer(t)
+
 
 def process_expire(jiffies):
     return __tw.process_expire(jiffies)

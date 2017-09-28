@@ -5,6 +5,7 @@
 #
 
 
+import time
 import struct
 
 from core import log
@@ -127,7 +128,9 @@ class Enity(object):
     def send_msg(self, msg):
         if isinstance(msg, str) or isinstance(msg, list) or isinstance(msg, Message):
             msg = Message(msg)
-        log.debug(0, 'send message: %s', msg)
+
+        c = self.conn
+        log.debug(0, '*%d send message: %s', c.index, msg)
 
         buff = msg.encode()
         if not buff:
@@ -136,7 +139,8 @@ class Enity(object):
         self.send_bin(buff)
 
     def process(self, msg):
-        log.debug(0, 'read message: %s', msg)
+        c = self.conn
+        log.debug(0, '*%d read message: %s', c.index, msg)
 
         cmd = msg.get(0)
         if not self.DO_MAP.has_key(cmd):

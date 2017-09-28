@@ -93,9 +93,9 @@ class TimerWheel(object):
         }
 
         def tv_expire(tv_to, tv_fr):
-            if (data['tv_last'] < data['tv_curr'])
+            if data['tv_last'] < data['tv_curr']:
                 data['tv_last'] /= len(tv_fr)
-            else
+            else:
                 data['tv_last'] = uint32(~(uint32(~data['tv_last']) / len(tv_fr)))
             data['tv_curr'] /= len(tv_fr)
             if data['tv_last'] == data['tv_curr']:

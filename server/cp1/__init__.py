@@ -6,11 +6,15 @@
 
 
 import time
+import struct
 
 from core import log
 from core.connection import Connection
 
+from event.event import *
+
 from server.bridge import Bridge
+from server.message import Message
 
 
 class Enity(object):
@@ -41,7 +45,6 @@ class Enity(object):
             if not self.conn.connect(self.addr_proxy):
                 time.sleep(1)
                 continue
-
             break;
         self.conn.nonblocking()
         self.send_msg(['register req', self.key])
@@ -75,11 +78,11 @@ class Enity(object):
     def send_msg(self, msg):
         if isinstance(msg, str) or isinstance(msg, list) or isinstance(msg, Message):
             msg = Message(msg)
-        log.debug('send message: %s', msg)
+        log.debug(0, 'send message: %s', str(msg))
 
         buff = msg.encode()
         if not buff:
-            log.error('invalid message: %s', msg)
+            log.error(0, 'invalid message: %s', msg)
             return
         self.send_bin(buff)
 
@@ -113,7 +116,7 @@ class Enity(object):
         if len(buff) < size0:
             return ''
 
-        size1 = struct.unpack('I', buff[0: size0)
+        size1, = struct.unpack('I', buff[0: size0])
         if len(buff) < size1 + size0:
             return ''
 
@@ -121,11 +124,11 @@ class Enity(object):
         return buff[size0: size0 + size1]
 
     def process(self, msg):
-        log.debug('read message: %s', msg)
+        log.debug(0, 'read message: %s', msg)
 
         cmd = msg.get(0)
         if not self.do_map.has_key(cmd):
-            log.error('invalid command. msg:%s', msg)
+            log.error(0, 'invalid command. msg:%s', msg)
             return
 
         self.DO_MAP[cmd](self, msg)
@@ -136,16 +139,16 @@ class Enity(object):
     def do_register(self, msg):
         err = msg.get(1)
         if err != 'ok':
-            log.error('register fail. msg:%s', msg)
+            log.error(0, 'register fail. msg:%s', msg)
             self.send_msg(['register req', self.key])
             return
 
-        log.debug('register succ')
+        log.debug(0, 'register succ')
 
     def do_cross(self, msg):
         key = msg.get(1)
         if not key:
-            log.error('invalid message: %s', msg)
+            log.error(0, 'invalid message: %s', msg)
             return
 
         t = Cross(self.addr_proxy, self.addr_target, key)
@@ -192,7 +195,7 @@ class Cross(object):
 
     def ready_connect_target(self):
         msg = Message(['accept req', self.key])
-        log.debug('send message: %s', msg)
+        log.debug(0, 'send message: %s', msg)
 
         buff = msg.encode()
         self.conn_proxy.buff = buff
@@ -232,17 +235,17 @@ class Cross(object):
             self.close()
             return
 
-        log.debug('read message. msg:%s', msg)
+        log.debug(0, 'read message. msg:%s', msg)
 
         cmd = msg.get(0)
         if cmd != 'accept rsp':
-            log.error('invalid message. msg:%s', msg)
+            log.error(0, 'invalid message. msg:%s', msg)
             self.close()
             return
 
         err = msg.get(1)
         if err != 'ok':
-            log.error('accept fail. msg:%s', msg)
+            log.error(0, 'accept fail. msg:%s', msg)
             self.close()
             return
         self.ready_target = True
@@ -265,7 +268,7 @@ class Cross(object):
         if len(buff) < size0:
             return ''
 
-        size1 = struct.unpack('I', buff[0: size0)
+        size1, = struct.unpack('I', buff[0: size0])
         if len(buff) < size1 + size0:
             return ''
 

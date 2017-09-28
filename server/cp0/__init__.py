@@ -49,12 +49,12 @@ class Enity(object):
 
     def close(self):
         if self.register_key:
-            log.debug('*%d del register: %s', self.conn.index, self.register_key)
+            log.debug(0, '*%d del register: %s', self.conn.index, self.register_key)
             del REGISTER[self.register_key]
             self.register_key = None
 
         if self.connect_key:
-            log.debug('*%d del connect: %s', self.conn.index, self.connect_key)
+            log.debug(0, '*%d del connect: %s', self.conn.index, self.connect_key)
             del CONNECT[self.connect_key]
             self.connect_key = None
 
@@ -112,7 +112,7 @@ class Enity(object):
         if len(buff) < size0:
             return ''
 
-        size1 = struct.unpack('I', buff[0: size0])
+        size1, = struct.unpack('I', buff[0: size0])
         if len(buff) < size1 + size0:
             return ''
 
@@ -127,20 +127,20 @@ class Enity(object):
     def send_msg(self, msg):
         if isinstance(msg, str) or isinstance(msg, list) or isinstance(msg, Message):
             msg = Message(msg)
-        log.debug('send message: %s', msg)
+        log.debug(0, 'send message: %s', msg)
 
         buff = msg.encode()
         if not buff:
-            log.error('invalid message: %s', msg)
+            log.error(0, 'invalid message: %s', msg)
             return
         self.send_bin(buff)
 
     def process(self, msg):
-        log.debug('read message: %s', msg)
+        log.debug(0, 'read message: %s', msg)
 
         cmd = msg.get(0)
         if not self.do_map.has_key(cmd):
-            log.error('invalid command. msg:%s', msg)
+            log.error(0, 'invalid command. msg:%s', msg)
             return
 
         self.DO_MAP[cmd](self, msg)
@@ -152,17 +152,17 @@ class Enity(object):
     def do_register(self, msg):
         key = msg.get(1)
         if not key:
-            log.error('invalid message: %s', msg)
+            log.error(0, 'invalid message: %s', msg)
             return
 
         if self.connect_key:
-            log.error('*%d has connected. key:%s', self.connect_key)
+            log.error(0, '*%d has connected. key:%s', self.connect_key)
             self.send_msg(['connect rsp', 'error', 'has connected. key:%s' % self.connect_key])
             return
 
         if self.register_key:
             if self.register_key != key:
-                log.error('*%d has registered, key:%s', self.conn.index, self.register_key)
+                log.error(0, '*%d has registered, key:%s', self.conn.index, self.register_key)
                 self.send_msg(['register rsp', 'error', 'has registered other'])
             else:
                 self.send_msg(['register rsp', 'ok'])
@@ -174,22 +174,22 @@ class Enity(object):
 
         REGISTER[key] = self
         self.register_key = key
-        log.debug('*%d add register: %s', self.conn.index, self.register_key)
+        log.debug(0, '*%d add register: %s', self.conn.index, self.register_key)
         self.send_msg(['register rsp', 'ok'])
 
     def do_accept(self, msg):
         key = msg.get(1)
         if not key:
-            log.error('invalid message: %s', msg)
+            log.error(0, 'invalid message: %s', msg)
             return
 
         if self.register_key:
-            log.error('*%d has registered. key:%s', self.register_key)
+            log.error(0, '*%d has registered. key:%s', self.register_key)
             self.send_msg(['connect rsp', 'error', 'has registered. key:%s' % self.register_key])
             return
 
         if self.connect_key:
-            log.error('*%d has connected. key:%s', self.connect_key)
+            log.error(0, '*%d has connected. key:%s', self.connect_key)
             self.send_msg(['connect rsp', 'error', 'has connected. key:%s' % self.connect_key])
             return
 
@@ -198,7 +198,7 @@ class Enity(object):
             return
 
         e = CONNECT[key]
-        log.debug('*%d del connect: %s', e.conn.index, e.connect_key)
+        log.debug(0, '*%d del connect: %s', e.conn.index, e.connect_key)
         del CONNECT[key]
         e.connect_key = None
 
@@ -220,21 +220,21 @@ class Enity(object):
     def do_connect(self, msg):
         key0 = msg.get(1)
         if not key0:
-            log.error('invalid message: %s', msg)
+            log.error(0, 'invalid message: %s', msg)
             return
 
         if self.register_key:
-            log.error('*%d has registered. key:%s', self.register_key)
+            log.error(0, '*%d has registered. key:%s', self.register_key)
             self.send_msg(['connect rsp', 'error', 'has registered. key:%s' % self.register_key])
             return
 
         if self.connect_key:
-            log.error('*%d has connected. key:%s', self.connect_key)
+            log.error(0, '*%d has connected. key:%s', self.connect_key)
             self.send_msg(['connect rsp', 'error', 'has connected. key:%s' % self.connect_key])
             return
 
         if not REGISTER.has_key(key0):
-            log.error('can not find the register. key:%s', key0)
+            log.error(0, 'can not find the register. key:%s', key0)
             self.send_msg(['connect rsp', 'error', 'can not find the register. key:%s' % key0])
             return
 
@@ -249,5 +249,5 @@ class Enity(object):
     def do_cross(self, msg):
         err = msg.get(1)
         if err != 'ok':
-            log.error('cross fail. msg:%s', msg)
+            log.error(0, 'cross fail. msg:%s', msg)
         return

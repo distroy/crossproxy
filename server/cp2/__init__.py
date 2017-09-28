@@ -62,11 +62,11 @@ class Enity(object):
 
     def send_connect(self):
         msg = Message(['connect req', self.key])
-        log.debug('send message: %s', msg)
+        log.debug(0, 'send message: %s', msg)
 
         buff = msg.encode()
         if not buff:
-            log.error('invalid message: %s', msg)
+            log.error(0, 'invalid message: %s', msg)
             return
         self.conn_proxy.wev.buff = buff
         self.send()
@@ -107,7 +107,7 @@ class Enity(object):
         if len(buff) < size0:
             return ''
 
-        size1 = struct.unpack('I', buff[0: size0)
+        size1, = struct.unpack('I', buff[0: size0)
         if len(buff) < size1 + size0:
             return ''
 
@@ -127,16 +127,16 @@ class Enity(object):
             self.close()
             return
 
-        log.debug('read message: %s', msg)
+        log.debug(0, 'read message: %s', msg)
 
         cmd = msg.get(0)
         if cmd != 'connect rsp':
-            log.error('invalid command. msg:%s', msg)
+            log.error(0, 'invalid command. msg:%s', msg)
             return
 
         err = msg.get(1)
         if err != 'ok':
-            log.error('accept fail. msg:%s', msg)
+            log.error(0, 'accept fail. msg:%s', msg)
             self.close()
             return
 

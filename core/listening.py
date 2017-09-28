@@ -63,7 +63,7 @@ class Listening(Connection):
         c.addr = Addr(self.addr)
         c.addr.parse_sockaddr(sockaddr)
 
-        log.debug(0, 'accept: %s', c.addr.text)
+        log.debug(0, '*%d accept: %s', c.index, c.addr.text)
         self.handler(c)
 
         return self

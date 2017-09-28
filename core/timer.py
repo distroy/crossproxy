@@ -24,6 +24,10 @@ class Timer(object):
     def __del__(self):
         self.remove()
 
+        self.prev = None
+        self.next = None
+        self.handler = None
+
     def empty(self):
         return self.prev == self.next
 

@@ -189,8 +189,6 @@ class TimerWheel(object):
         if jiffies <= 0:
             return
 
-        log.debug(0, 'current:%d, jiffies:%d', self.__current, jiffies)
-
         if jiffies < len(self.__tv0):
             loop = jiffies
         else:

@@ -26,7 +26,11 @@ class Timer(object):
         self.handler = None
         self.pos = 0
 
-        self.prev = self.next = weakref.proxy(self)
+        # self.prev = self.next = weakref.proxy(self)
+        self.prev = self.next = None
+
+        self.queue = None
+        self.size = 0
 
     def __del__(self):
         self.remove()
@@ -35,16 +39,18 @@ class Timer(object):
         self.next = None
         self.handler = None
 
-    def empty(self):
-        return self.prev and self.prev.__seq == self.__seq
-
     def remove(self):
-        if self.empty():
+        if not self.queue:
             return
+
+        self.queue.size -= 1
+        self.queue = None
+
         self.prev.next = self.next
         self.next.prev = self.prev
 
-        self.prev = self.next = weakref.proxy(self)
+        # self.prev = self.next = weakref.proxy(self)
+        self.prev = self.next = None
 
         self.pos = 0
 
@@ -52,14 +58,16 @@ class Timer(object):
 class TimerWheel(object):
 
     def __init__(self):
-        # self.__current = 0x7fffff00
-        self.__current = 0
+        self.__current = 0x7fffff00
+        # self.__current = 0
         self.__expires = Timer()
+        self.__expires.prev = self.__expires.next = self.__expires
 
         def init_tv(size):
             tv = []
             for i in range(size):
                 t = Timer()
+                t.prev = t.next = t
                 tv.append(t)
             return tv
         self.__tv0 = init_tv(1 << 8)
@@ -73,8 +81,9 @@ class TimerWheel(object):
 
         def clear_tv(tv):
             for h in tv:
-                while not h.empty():
+                while h.size > 0:
                     t = h.next
+                    t.remove()
                     t.prev = None
                     t.next = None
                 h.prev = None
@@ -101,17 +110,20 @@ class TimerWheel(object):
         t.remove()
 
     def __add_timer(self, t):
-        h = self.get_pos(t)
+        q = self.get_pos(t)
 
-        t.prev = h.prev
+        t.prev = q.prev
+        t.next = q
         t.prev.next = t
-        t.next = h
-        h.prev = t
+        t.next.prev = t
+
+        t.queue = q
+        q.size += 1
 
     def __add_exipres(self, q):
         h = self.__expires
 
-        if q.empty():
+        if q.size <= 0:
             return
 
         h.prev.next = q.next
@@ -119,7 +131,7 @@ class TimerWheel(object):
         h.prev = q.prev
         h.prev.next = h
 
-        q.prev = q.next = weakref.proxy(q)
+        q.prev = q.next = q
 
     def __rebuild_tvs(self, jiffies):
         last = self.__current
@@ -146,16 +158,19 @@ class TimerWheel(object):
                 loop = len(tv_to)
             for i in range(1, loop + 1):
                 h = tv_to[uint32(data['tv_last'] + i) % len(tv_to)]
-                while not h.empty():
+                while h.size > 0:
                     t = h.next
                     t.remove()
                     if uint32(t.pos - data['last']) < jiffies:
-                        h = self.__expires
+                        q = self.__expires
 
-                        t.prev = h.prev
-                        t.prev.next = t
-                        t.next = h
-                        h.prev = t
+                        t.prev = q.prev
+                        t.next = q
+                        t.prev.next = q
+                        t.next.prev = q
+
+                        t.queue = q
+                        q.size += 1
                     else:
                         self.__add_timer(t)
 
@@ -180,7 +195,7 @@ class TimerWheel(object):
 
         self.__rebuild_tvs(jiffies)
 
-        while not self.__expires.empty():
+        while self.__expires.size > 0:
             t = self.__expires.next
             t.remove()
 

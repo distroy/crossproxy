@@ -1,0 +1,92 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) distroy
+#
+
+
+import traceback
+import sys
+
+from core import log
+from core import closure
+from core import daemon
+from core.addr import Addr
+from core.listening import Listening
+from core.connection import Connection
+
+from event.event import *
+
+from server import cp1 as server
+
+
+def get_options():
+    import optparse
+    parser = optparse.OptionParser(version = "%prog (distroy) 0.1")
+
+    parser.add_option('-d', '--debug', dest='debug', action='store_true',
+                      default=False, help='run with debug')
+    parser.add_option('-k', '--key', dest='key', metavar='<key>', help='key')
+    # parser.add_option('-l', '--listen', dest='listen', default='0.0.0.0:8001',
+    #                   metavar='<address>', help='listen address, [[host:]port], default: 0.0.0.0:8001')
+    parser.add_option('-L', '--log', dest='log', default='debug',
+                      metavar='<log level>', help='log level, default: debug')
+    parser.add_option('-p', '--proxy', dest='proxy', default='127.0.0.1:8000',
+                      metavar='<address>', help='proxy address, [host:port], default: 127.0.0.1:8000')
+    parser.add_option('-t', '--target', dest='target', default='127.0.0.1:22',
+                      metavar='<address>', help='target address, [[host]:port], default: 127.0.0.1:22')
+
+    opts, args = parser.parse_args()
+    return opts, args
+
+
+
+def main(opts, args):
+    if not log.set_level(opts.log):
+        log.error(0, 'invalid log level: %s', opts.log)
+
+    path = os.path.split(__file__)[0]
+    log.set_work_path(path)
+    path = '%s/crossproxy.log' % path
+    log.init(path)
+
+    if not opts.debug:
+        daemon.daemon()
+
+    if not init_event():
+        log.error(0, 'init event module failed')
+        return -1
+
+    proxy = Addr()
+    target = Addr()
+    if not proxy.parse(opts.proxy):
+        return -1
+    if not target.parse(opts.target):
+        return -1
+    if not opts.key:
+        return -1
+
+    if not opts.debug:
+        log.dup_stderr()
+
+    e = server.Enity(proxy, target, opts.key)
+    e.init()
+
+    log.info(0, 'start success')
+
+    while True:
+        process_events(20)
+
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        (opts, args) = get_options()
+        exit(main(opts, args))
+    except KeyboardInterrupt as exc:
+        sys.stderr.write("\033[1;31moperation cancelled by user\033[0m\n")
+        exit(-1)
+    except Exception as exc:
+        sys.stderr.write(traceback.format_exc())
+        exit(-1)

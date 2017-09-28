@@ -112,7 +112,7 @@ class Enity(object):
         if len(buff) < size0:
             return ''
 
-        size1 = struct.unpack('I', buff[0: size0)
+        size1 = struct.unpack('I', buff[0: size0])
         if len(buff) < size1 + size0:
             return ''
 

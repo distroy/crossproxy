@@ -36,14 +36,6 @@ def get_handler(opts, args):
 
 class Enity(object):
 
-    DO_MAP = {
-        'heartbeat req': Enity.do_heartbeat,
-        'register req': Enity.do_register,
-        'connect req': Enity.do_connect,
-        'accept req': Enity.do_accept,
-        'cross rsp': Enity.do_cross,
-    }
-
     def __init__(self, c, key, addr):
         self.conn = c
 

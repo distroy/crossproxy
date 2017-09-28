@@ -14,13 +14,13 @@ from server.bridge import Bridge
 
 
 class Enity(object):
-    DO_MAP = {
-        'heartbeat rsp': Enity.do_heartbeat,
-        'register rsp': Enity.do_register,
-        'cross req': Enity.do_cross,
-    }
-
     def __init__(self, proxy, target, key):
+        DO_MAP = {
+            'heartbeat rsp': Enity.do_heartbeat,
+            'register rsp': Enity.do_register,
+            'cross req': Enity.do_cross,
+        }
+
         self.conn = None
         self.addr_proxy = proxy
         self.addr_target = target

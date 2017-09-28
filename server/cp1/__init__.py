@@ -19,7 +19,7 @@ from server.message import Message
 
 class Enity(object):
     def __init__(self, proxy, target, key):
-        DO_MAP = {
+        self.DO_MAP = {
             'heartbeat rsp': Enity.do_heartbeat,
             'register rsp': Enity.do_register,
             'cross req': Enity.do_cross,
@@ -127,7 +127,7 @@ class Enity(object):
         log.debug(0, 'read message: %s', msg)
 
         cmd = msg.get(0)
-        if not self.do_map.has_key(cmd):
+        if not self.DO_MAP.has_key(cmd):
             log.error(0, 'invalid command. msg:%s', msg)
             return
 

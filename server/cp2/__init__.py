@@ -65,7 +65,7 @@ class Enity(object):
         log.debug(0, '*%d connect: %s', c.index, c.addr.text)
 
         msg = Message(['connect req', self.key])
-        log.debug(0, 'send message: %s', msg)
+        log.debug(0, '*%d send message: %s', c.index, msg)
 
         buff = msg.encode()
         if not buff:

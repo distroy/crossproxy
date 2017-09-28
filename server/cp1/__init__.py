@@ -128,7 +128,7 @@ class Enity(object):
 
     def process(self, msg):
         c = self.conn
-        log.debug(0, '%d read message: %s', c.index, msg)
+        log.debug(0, '*%d read message: %s', c.index, msg)
 
         cmd = msg.get(0)
         if not self.DO_MAP.has_key(cmd):

@@ -55,7 +55,7 @@ class Enity(object):
 
     def on_timeout(self):
         c = self.conn
-        log.warn('*%d has timeout', c.index)
+        log.warn(0, '*%d has timeout', c.index)
         self.close()
 
 

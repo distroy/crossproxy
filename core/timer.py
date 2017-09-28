@@ -12,6 +12,7 @@ import ctypes
 def uint32(n):
     return ctypes.c_uint32(n).value
 
+
 class Timer(object):
 
     def __init__(self):
@@ -59,14 +60,12 @@ class TimerWheel(object):
         t.remove()
 
         t.pos = uint32(self.__current + jiffies)
-        self.__add(t)
-
+        self.__add_timer(t)
 
     def del_timer(self, t):
         t.remove()
 
-
-    def __add(self, t):
+    def __add_timer(self, t):
         h = self.get_pos(t)
 
         t.prev = h.prev
@@ -74,11 +73,74 @@ class TimerWheel(object):
         t.next = h
         h.prev = t
 
+    def __add_queue(self, q):
+        h = self.__expires
 
-    def process_expire(jiffies):
+        h.prev.next = q.next
+        q.next.prev = h.prev
+        h.prev = q.prev
+        h.prev.next = h
+
+        q.prev = q.next = weakref.proxy(q)
+
+    def __rebuild_tvs(self, jiffies):
+        last = self.__current,
+        self.__current = uint32(self.__current + jiffies)
+        data = {
+            'last': last,
+            'tv_last': last,
+            'tv_curr': self.__current,
+        }
+
+        def tv_expire(tv_to, tv_fr):
+            if (data['tv_last'] < data['tv_curr'])
+                data['tv_last'] /= len(tv_fr)
+            else
+                data['tv_last'] = uint32(~(uint32(~data['tv_last']) / len(tv_fr)))
+            data['tv_curr'] /= len(tv_fr)
+            if data['tv_last'] == data['tv_curr']:
+                return
+            loop = data['tv_curr'] - data['tv_last']
+            if loop >= len(tv_to):
+                loop = len(tv_to)
+            for i in range(1, loop + 1):
+                h = tv_to[uint32(data['tv_last'] + i) % len(tv_to)]
+                while not h.empty():
+                    t = h.next
+                    t.remove()
+                    if uint32(t.pos - data['last')] < jiffies:
+                        h = self.__expires
+
+                        t.prev = h.prev
+                        t.prev.next = t
+                        t.next = h
+                        h.prev = t
+                    else:
+                        self.__add_timer(t)
+
+        tv_expire(self.__tv1, self.__tv0)
+        tv_expire(self.__tv2, self.__tv1)
+        tv_expire(self.__tv3, self.__tv2)
+        tv_expire(self.__tv4, self.__tv3)
+
+    def process_expire(self, jiffies):
         if jiffies <= 0:
             return
 
+        loop = jiffies < len(self.__tv0) ? jiffies: len(self.__tv0)
+        for i in range(loop):
+            j = uint32(self.__current + i) % len(self.__tv0)
+            q = self.__tv0[j]
+            self.__add_queue(q)
+
+        self.__rebuild_tvs()
+
+        while not self.__expires.empty():
+            t = self.__expires.next
+            t.remove()
+
+            if t.handler:
+                t.handler()
 
     def get_pos(self, t):
         data = {
@@ -115,5 +177,11 @@ class TimerWheel(object):
 __tw = TimerWheel()
 
 
-def add_timer(t):
-    return __tw.add_timer(t)
+def add_timer(t, jiffies):
+    return __tw.add_timer(t, jiffies)
+
+def del_timer(t):
+    return __tw.del_timer(t)
+
+def process_expire(jiffies):
+    return __tw.process_expire(jiffies)

@@ -12,6 +12,7 @@ from core import log
 from core.addr import Addr
 from core.connection import Connection
 from core import closure
+from core.timer import *
 
 from server.bridge import Bridge
 from server.message import Message
@@ -48,6 +49,9 @@ class Enity(object):
         c.rev.handler = lambda: self.read()
         add_conn(c, READ_EVENT)
 
+        self.timer = Timer()
+        self.timer.handler = lambda: self.close()
+
     def close(self):
         if self.register_key:
             log.debug(0, '*%d del register: %s', self.conn.index, self.register_key)
@@ -59,8 +63,13 @@ class Enity(object):
             del CONNECT[self.connect_key]
             self.connect_key = None
 
-        self.conn.close()
-        self.conn = None
+        if self.conn:
+            self.conn.close()
+            self.conn = None
+
+        if self.timer:
+            del_timer(self.timer)
+            self.timer = None
 
 
     def send(self):
@@ -147,6 +156,7 @@ class Enity(object):
             log.error(0, 'invalid command. msg:%s', msg)
             return
 
+        add_timer(self.timer, 120)
         self.DO_MAP[cmd](self, msg)
 
 
@@ -212,14 +222,12 @@ class Enity(object):
         if e.conn and self.conn:
             Bridge(e.conn, self.conn)
             e.conn = None
+            e.timer = None
             self.conn = None
+            self.timer = None
         else:
-            if e.conn:
-                e.conn.close()
-                e.conn = None
-            if self.conn:
-                self.conn.close()
-                self.conn = None
+            e.close()
+            self.close()
 
     def do_connect(self, msg):
         key0 = msg.get(1)

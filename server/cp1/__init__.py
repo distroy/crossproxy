@@ -10,6 +10,7 @@ import struct
 
 from core import log
 from core.connection import Connection
+from core.timer import *
 
 from event.event import *
 
@@ -30,10 +31,15 @@ class Enity(object):
         self.addr_target = target
         self.key = key
 
+        self.timer = None
+
     def clear(self):
         if self.conn:
             self.conn.close()
             self.conn = None
+        if self.timer:
+            del_timer(self.timer)
+            self.timer = None
 
     def close(self):
         self.init()
@@ -50,6 +56,14 @@ class Enity(object):
         log.debug(0, '*%d connect: %s', c.index, c.addr.text)
         c.nonblocking()
         self.send_msg(['register req', self.key])
+
+        self.timer = Timer()
+        self.timer.handler = lambda : self.on_timer()
+        add_timer(self.timer, 30)
+
+    def on_timer(self):
+        add_timer(self.timer, 30)
+        self.send_msg(['heartbeat req'])
 
     def send(self):
         c = self.conn

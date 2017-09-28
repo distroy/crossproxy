@@ -59,7 +59,7 @@ class TimerWheel(object):
 
     def __init__(self):
         self.__current = 0x7fffff00
-        # self.__current = 0
+
         self.__expires = Timer()
         self.__expires.prev = self.__expires.next = self.__expires
 
@@ -126,12 +126,18 @@ class TimerWheel(object):
         if q.size <= 0:
             return
 
-        h.prev.next = q.next
-        q.next.prev = h.prev
-        h.prev = q.prev
-        h.prev.next = h
+        while q.size > 0:
+            t = q.next
+            t.remove()
 
-        q.prev = q.next = q
+            t.prev = h.prev
+            t.next = h
+            t.prev.next = t
+            t.next.prev = t
+
+            t.queue = h
+            h.size += 1
+
 
     def __rebuild_tvs(self, jiffies):
         last = self.__current
@@ -182,6 +188,8 @@ class TimerWheel(object):
     def process_expire(self, jiffies):
         if jiffies <= 0:
             return
+
+        log.debug(0, 'current:%d, jiffies:%d', self.__current, jiffies)
 
         if jiffies < len(self.__tv0):
             loop = jiffies

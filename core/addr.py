@@ -28,6 +28,9 @@ class Addr(object):
 
         self.parse(addr, *args)
 
+    def set_procotol(self, *args):
+        self.__set_procotol(*args)
+
     def __set_procotol(self, family=0, socktype=0, proto=0):
         if not family:
             family = socket.AF_INET
@@ -138,3 +141,5 @@ class Addr(object):
             return None
 
         return self.parse_text(':'.join(arr))
+
+log.debug(0, 'family:%d, socktype:%d, proto:%d', socket.AF_INET, socket.SOCK_STREAM, 0)

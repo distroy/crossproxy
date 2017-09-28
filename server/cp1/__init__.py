@@ -6,11 +6,13 @@
 
 
 import time
+import sys
 import struct
 
 from core import log
 from core.connection import Connection
 from core.timer import *
+from core.addr import Addr
 
 from event.event import *
 
@@ -34,6 +36,9 @@ class Enity(object):
         self.addr_target = target
         self.key = key
 
+        self.addr_proxy.set_procotol(2, 1, 6)
+        self.addr_target.set_procotol(2, 1, 6)
+
         self.timer = None
 
     def clear(self):
@@ -49,13 +54,16 @@ class Enity(object):
         self.init()
 
     def init(self):
+        addr = self.addr_proxy
         while True:
             self.clear()
             self.conn = Connection()
-            if not self.conn.connect(self.addr_proxy):
-                time.sleep(1)
-                continue
-            break;
+            if self.conn.connect(addr):
+                break
+            time.sleep(1)
+            # if not addr.next_sockaddr():
+            #     sys.exit(-1)
+
         c = self.conn
         log.debug(0, '*%d connect: %s', c.index, c.addr.text)
         c.nonblocking()

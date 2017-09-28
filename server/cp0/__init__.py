@@ -50,7 +50,14 @@ class Enity(object):
         add_conn(c, READ_EVENT)
 
         self.timer = Timer()
-        self.timer.handler = lambda: self.close()
+        self.timer.handler = lambda: self.on_timeout()
+
+
+    def on_timeout(self):
+        c = self.conn
+        log.warn('*%d has timeout', c.index)
+        self.close()
+
 
     def close(self):
         if self.register_key:

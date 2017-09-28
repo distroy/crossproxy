@@ -20,7 +20,7 @@ from server.bridge import Bridge
 from server.message import Message
 
 
-HEARTBEAT_INTERVAL = 15
+HEARTBEAT_INTERVAL = 30
 
 
 class Enity(object):

@@ -81,7 +81,9 @@ _lvl_infos = [
     },
 ]
 
-_lvl_map = {_lvl_infos[i]['name'].lower(): i for i in range(len(_lvl_infos))}
+_lvl_map = {}
+for i in range(len(_lvl_infos)):
+    _lvl_map[_lvl_infos[i]['name'].lower()] = i
 _lvl_map.update({
     'all':      LVL_ALL,
     'default':  LVL_DEFAULT,

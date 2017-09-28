@@ -69,6 +69,7 @@ class Enity(object):
 
         if self.timer:
             del_timer(self.timer)
+            self.timer.prev = self.timer.next = None
             self.timer = None
 
 

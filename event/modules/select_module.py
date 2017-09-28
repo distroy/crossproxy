@@ -88,11 +88,11 @@ class Select(object):
 
     def process_events(self, wait_time = 20):
         if wait_time:
-            wait_time = [float(wait_time) % 1000]
+            wait_time = float(wait_time) / 1000
         else:
-            wait_time = []
+            wait_time = 0.02
         try:
-            r, w, x = select.select(self.r_list, self.w_list, self.x_list, *wait_time)
+            r, w, x = select.select(self.r_list, self.w_list, self.x_list, wait_time)
         except Exception as exc:
             log.error(exc, 'select() failed')
             exit(-1)

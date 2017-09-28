@@ -92,9 +92,9 @@ def main(opts, args):
     while True:
         process_events(20)
         now = int(time.time())
-        if last != now:
+        if last < now:
+            process_expire(now - last)
             last = now
-            process_expire(1)
 
     return 0
 

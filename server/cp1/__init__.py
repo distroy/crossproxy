@@ -18,6 +18,9 @@ from server.bridge import Bridge
 from server.message import Message
 
 
+HEARTBEAT_INTERVAL = 15
+
+
 class Enity(object):
     def __init__(self, proxy, target, key):
         self.DO_MAP = {
@@ -39,6 +42,7 @@ class Enity(object):
             self.conn = None
         if self.timer:
             del_timer(self.timer)
+            self.timer.prev = self.timer.next = None
             self.timer = None
 
     def close(self):
@@ -59,10 +63,10 @@ class Enity(object):
 
         self.timer = Timer()
         self.timer.handler = lambda : self.on_timer()
-        add_timer(self.timer, 30)
+        add_timer(self.timer, HEARTBEAT_INTERVAL)
 
     def on_timer(self):
-        add_timer(self.timer, 30)
+        add_timer(self.timer, HEARTBEAT_INTERVAL)
         self.send_msg(['heartbeat req'])
 
     def send(self):
@@ -149,6 +153,7 @@ class Enity(object):
             log.error(0, 'invalid command. msg:%s', msg)
             return
 
+        add_timer(self.timer, HEARTBEAT_INTERVAL)
         self.DO_MAP[cmd](self, msg)
 
     def do_heartbeat(self, msg):

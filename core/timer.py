@@ -8,6 +8,12 @@
 import weakref
 import ctypes
 
+from core import closure
+from core import log
+
+
+get_sequence = closure(0, lambda x: x + 1)
+
 
 def uint32(n):
     return ctypes.c_uint32(n).value
@@ -16,6 +22,7 @@ def uint32(n):
 class Timer(object):
 
     def __init__(self):
+        self.__seq = get_sequence()
         self.handler = None
         self.pos = 0
 
@@ -29,7 +36,7 @@ class Timer(object):
         self.handler = None
 
     def empty(self):
-        return self.prev == self.next
+        return self.prev and self.prev.__seq == self.__seq
 
     def remove(self):
         if self.empty():
@@ -39,14 +46,14 @@ class Timer(object):
 
         self.prev = self.next = weakref.proxy(self)
 
-        self.handler = None
         self.pos = 0
 
 
 class TimerWheel(object):
 
     def __init__(self):
-        self.__current = 0x7fffff00
+        # self.__current = 0x7fffff00
+        self.__current = 0
         self.__expires = Timer()
 
         def init_tv(size):
@@ -63,6 +70,21 @@ class TimerWheel(object):
 
     def __del__(self):
         self.__expires = None
+
+        def clear_tv(tv):
+            for h in tv:
+                while not h.empty():
+                    t = h.next
+                    t.prev = None
+                    t.next = None
+                h.prev = None
+                h.next = None
+        clear_tv(self.__tv0)
+        clear_tv(self.__tv1)
+        clear_tv(self.__tv2)
+        clear_tv(self.__tv3)
+        clear_tv(self.__tv4)
+
         self.__tv0 = None
         self.__tv1 = None
         self.__tv2 = None
@@ -86,8 +108,11 @@ class TimerWheel(object):
         t.next = h
         h.prev = t
 
-    def __add_queue(self, q):
+    def __add_exipres(self, q):
         h = self.__expires
+
+        if q.empty():
+            return
 
         h.prev.next = q.next
         q.next.prev = h.prev
@@ -97,7 +122,7 @@ class TimerWheel(object):
         q.prev = q.next = weakref.proxy(q)
 
     def __rebuild_tvs(self, jiffies):
-        last = self.__current,
+        last = self.__current
         self.__current = uint32(self.__current + jiffies)
         data = {
             'last': last,
@@ -110,6 +135,9 @@ class TimerWheel(object):
                 data['tv_last'] /= len(tv_fr)
             else:
                 data['tv_last'] = uint32(~(uint32(~data['tv_last']) / len(tv_fr)))
+                # data['tv_last'] = ~(data['tv_last'])
+                # data['tv_last'] = uint32(data['tv_last']) / len(tv_fr)
+                # data['tv_last'] = uint32(~data['tv_last'])
             data['tv_curr'] /= len(tv_fr)
             if data['tv_last'] == data['tv_curr']:
                 return
@@ -148,7 +176,7 @@ class TimerWheel(object):
         for i in range(loop):
             j = uint32(self.__current + i) % len(self.__tv0)
             q = self.__tv0[j]
-            self.__add_queue(q)
+            self.__add_exipres(q)
 
         self.__rebuild_tvs(jiffies)
 

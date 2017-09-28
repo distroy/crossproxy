@@ -127,7 +127,11 @@ class TimerWheel(object):
         if jiffies <= 0:
             return
 
-        loop = jiffies < len(self.__tv0) ? jiffies: len(self.__tv0)
+        if jiffies < len(self.__tv0):
+            loop = jiffies
+        else:
+            loop = len(self.__tv0)
+
         for i in range(loop):
             j = uint32(self.__current + i) % len(self.__tv0)
             q = self.__tv0[j]

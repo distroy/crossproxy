@@ -141,5 +141,3 @@ class Addr(object):
             return None
 
         return self.parse_text(':'.join(arr))
-
-log.debug(0, 'family:%d, socktype:%d, proto:%d', socket.AF_INET, socket.SOCK_STREAM, 0)

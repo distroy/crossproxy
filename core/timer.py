@@ -108,7 +108,7 @@ class TimerWheel(object):
                 while not h.empty():
                     t = h.next
                     t.remove()
-                    if uint32(t.pos - data['last')] < jiffies:
+                    if uint32(t.pos - data['last']) < jiffies:
                         h = self.__expires
 
                         t.prev = h.prev

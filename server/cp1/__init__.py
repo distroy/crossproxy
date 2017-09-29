@@ -107,7 +107,10 @@ class Enity(object):
         c = self.conn
         if isinstance(msg, str) or isinstance(msg, list) or isinstance(msg, Message):
             msg = Message(msg)
-        log.debug(0, '*%d send message: %s', c.index, str(msg))
+        if msg.get(0) != 'heartbeat req':
+            log.debug(0, '*%d send message: %s', c.index, msg)
+        else:
+            log.trace(0, '*%d send message: %s', c.index, msg)
 
         buff = msg.encode()
         if not buff:
@@ -154,9 +157,12 @@ class Enity(object):
 
     def process(self, msg):
         c = self.conn
-        log.debug(0, '*%d read message: %s', c.index, msg)
-
         cmd = msg.get(0)
+        if cmd != 'heartbeat rsp':
+            log.debug(0, '*%d read message: %s', c.index, msg)
+        else:
+            log.trace(0, '*%d read message: %s', c.index, msg)
+
         if not self.DO_MAP.has_key(cmd):
             log.error(0, 'invalid command. msg:%s', msg)
             return

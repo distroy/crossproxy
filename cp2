@@ -8,6 +8,7 @@
 import traceback
 import sys
 import os
+import time
 
 from core import log
 from core import closure
@@ -15,6 +16,7 @@ from core import daemon
 from core.addr import Addr
 from core.listening import Listening
 from core.connection import Connection
+from core.timer import process_expire
 
 from event.event import *
 
@@ -23,7 +25,7 @@ from server import cp2 as server
 
 def get_options():
     import optparse
-    parser = optparse.OptionParser(version = "%prog (distroy) 0.1")
+    parser = optparse.OptionParser(version="%prog (distroy) 0.1")
 
     parser.add_option('-d', '--debug', dest='debug', action='store_true',
                       default=False, help='run with debug')
@@ -37,7 +39,6 @@ def get_options():
 
     opts, args = parser.parse_args()
     return opts, args
-
 
 
 def main(opts, args):
@@ -87,8 +88,13 @@ def main(opts, args):
 
     log.info(0, 'start success')
 
+    last = int(time.time())
     while True:
         process_events(20)
+        now = int(time.time())
+        if last < now:
+            process_expire(now - last)
+            last = now
 
     return 0
 

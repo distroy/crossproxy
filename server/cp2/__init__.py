@@ -11,6 +11,7 @@ from core import log
 from core.addr import Addr
 from core.connection import Connection
 from core import closure
+from core.timer import *
 
 from server.bridge import Bridge
 from server.message import Message
@@ -20,6 +21,7 @@ from event.event import *
 
 REGISTER = {}
 CONNECT = {}
+EXPIRE_TIME = 60
 
 
 get_sequence = closure(0, lambda x: (x + 1) & 0xfffffff)
@@ -51,6 +53,15 @@ class Enity(object):
         c.wev.handler = lambda: self.send_connect()
         add_conn(c, WRITE_EVENT)
 
+        self.timer = Timer()
+        self.timer.handler = lambda: self.on_timeout()
+        add_timer(self.timer, EXPIRE_TIME)
+
+    def on_timeout(self):
+        c = self.conn_proxy
+        log.warn(0, '*%d timeout', c.index)
+        self.close()
+
     def close(self):
         if self.conn:
             self.conn.close()
@@ -59,6 +70,10 @@ class Enity(object):
         if self.conn_proxy:
             self.conn_proxy.close()
             self.conn_proxy = None
+
+        if self.timer:
+            del_timer(self.timer)
+            self.timer = None
 
     def send_connect(self):
         c = self.conn_proxy
@@ -151,3 +166,7 @@ class Enity(object):
         Bridge(self.conn, self.conn_proxy)
         self.conn = None
         self.conn_proxy = None
+
+        if self.timer:
+            del_timer(self.timer)
+            self.timer = None

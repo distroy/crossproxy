@@ -36,8 +36,8 @@ class Enity(object):
         self.addr_target = target
         self.key = key
 
-        self.addr_proxy.set_procotol(2, 1, 6)
-        self.addr_target.set_procotol(2, 1, 6)
+        self.addr_proxy.set_tcp()
+        self.addr_target.set_tcp()
 
         self.timer = None
 

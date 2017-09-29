@@ -28,8 +28,8 @@ class Addr(object):
 
         self.parse(addr, *args)
 
-    def set_procotol(self, *args):
-        self.__set_procotol(*args)
+    def set_tcp(self):
+        self.__set_procotol(socket.AF_INET, socket.SOCK_STREAM, socket.SOL_TCP)
 
     def __set_procotol(self, family=0, socktype=0, proto=0):
         if not family:

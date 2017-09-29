@@ -27,6 +27,9 @@ CONNECT = {}
 get_sequence = closure(0, lambda x: (x + 1) & 0xfffffff)
 
 
+EXPIRE_TIME = 120
+
+
 def get_handler(opts, args):
     return lambda c: Enity(c)
 
@@ -51,6 +54,7 @@ class Enity(object):
 
         self.timer = Timer()
         self.timer.handler = lambda: self.on_timeout()
+        add_timer(self.timer, EXPIRE_TIME)
 
 
     def on_timeout(self):
@@ -76,7 +80,6 @@ class Enity(object):
 
         if self.timer:
             del_timer(self.timer)
-            self.timer.prev = self.timer.next = None
             self.timer = None
 
 
@@ -164,7 +167,7 @@ class Enity(object):
             log.error(0, 'invalid command. msg:%s', msg)
             return
 
-        add_timer(self.timer, 120)
+        add_timer(self.timer, EXPIRE_TIME)
         self.DO_MAP[cmd](self, msg)
 
 
@@ -230,9 +233,14 @@ class Enity(object):
         if e.conn and self.conn:
             Bridge(e.conn, self.conn)
             e.conn = None
-            e.timer = None
             self.conn = None
-            self.timer = None
+
+            if e.timer:
+                del_timer(e.timer)
+                e.timer = None
+            if self.timer:
+                del_timer(self.timer)
+                self.timer = None
         else:
             e.close()
             self.close()

@@ -9,3 +9,5 @@ tags
 *.stackdump
 
 test[._]*
+
+start.sh

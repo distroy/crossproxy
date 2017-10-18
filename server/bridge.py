@@ -19,7 +19,7 @@ class Bridge(object):
         c0.wev.handler = c1.rev.handler = lambda: self.forward(c1, c0)
 
         log.debug(0, '*%d connect: %s', c1.index, c1.addr.text)
-        log.debug(0, '*%d bridge *%d connect', c0.index, c1.index)
+        log.info(0, '*%d bridge *%d connect', c0.index, c1.index)
 
         del_conn(c0, WRITE_EVENT)
         del_conn(c1, WRITE_EVENT)
@@ -69,7 +69,7 @@ class Bridge(object):
         else:
             i1 = rc.index
             i0 = wc.index
-        log.debug(0, '*%d bridge *%d break', i0, i1)
+        log.info(0, '*%d bridge *%d break', i0, i1)
         self.close()
 
     def close(self):

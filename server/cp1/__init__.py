@@ -40,6 +40,7 @@ class Enity(object):
         self.addr_target.set_tcp()
 
         self.timer = None
+        self.registered = False
 
     def clear(self):
         if self.conn:
@@ -49,6 +50,7 @@ class Enity(object):
             del_timer(self.timer)
             self.timer.prev = self.timer.next = None
             self.timer = None
+        self.registered = False
 
     def close(self):
         self.init()
@@ -70,10 +72,13 @@ class Enity(object):
         self.send_msg(['register req', self.key])
 
         self.timer = Timer()
-        self.timer.handler = lambda : self.on_timer()
+        self.timer.handler = lambda: self.on_timer()
         add_timer(self.timer, HEARTBEAT_INTERVAL)
 
     def on_timer(self):
+        if not self.registered:
+            self.close()
+            return
         add_timer(self.timer, HEARTBEAT_INTERVAL)
         self.send_msg(['heartbeat req'])
 
@@ -180,6 +185,7 @@ class Enity(object):
             self.send_msg(['register req', self.key])
             return
 
+        self.registered = True
         log.debug(0, 'register succ. key:%s', self.key)
 
     def do_cross(self, msg):
@@ -304,7 +310,6 @@ class Cross(object):
         self.ready_proxy = True
         del_conn(c, WRITE_EVENT)
         self.check_ready()
-
 
     def read_bin(self):
         c = self.conn_proxy

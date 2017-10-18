@@ -173,7 +173,8 @@ class Enity(object):
             log.error(0, 'invalid command. msg:%s', msg)
             return
 
-        add_timer(self.timer, EXPIRE_TIME)
+        if self.register_key:
+            add_timer(self.timer, EXPIRE_TIME)
         self.DO_MAP[cmd](self, msg)
 
 
@@ -205,7 +206,7 @@ class Enity(object):
 
         REGISTER[key] = self
         self.register_key = key
-        log.debug(0, '*%d add register: %s', self.conn.index, self.register_key)
+        log.info(0, '*%d add register: %s', self.conn.index, self.register_key)
         self.send_msg(['register rsp', 'ok'])
 
     def do_accept(self, msg):

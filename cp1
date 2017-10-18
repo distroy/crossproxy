@@ -45,7 +45,7 @@ def get_options():
 
 
 def main(opts, args):
-    if not log.set_level(opts.log):
+    if log.set_level(opts.log) != 0:
         log.error(0, 'invalid log level: %s', opts.log)
 
     path = os.path.split(__file__)[0]

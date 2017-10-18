@@ -136,8 +136,11 @@ class Log(object):
 
     def set_level(self, lvl):
         l = self.__to_level(lvl)
-        if l >= 0:
-            self.__level = l
+        if l < 0:
+            return -1
+
+        self.__level = l
+        return 0
 
     def dup_stderr(self):
         if self.__fd != -1:

@@ -95,7 +95,12 @@ class Bridge(object):
         self.close()
 
     def close(self):
-        self.c0.close()
-        self.c1.close()
-        self.c0 = None
-        self.c1 = None
+        if self.c0:
+            self.c0.close()
+            self.c0 = None
+        if self.c1:
+            self.c1.close()
+            self.c1 = None
+        if self.timer:
+            del_timer(self.timer)
+            self.timer = None

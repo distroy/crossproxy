@@ -6,8 +6,12 @@
 
 
 from core import log
+from core.timer import *
 
 from event.event import *
+
+
+EXPIRE_TIME = 120
 
 
 class Bridge(object):
@@ -27,8 +31,26 @@ class Bridge(object):
         add_conn(c0, READ_EVENT)
         add_conn(c1, READ_EVENT)
 
+        self.timer = Timer()
+        self.timer.handler = lambda: self.on_timeout()
+        add_timer(self.timer, EXPIRE_TIME)
+
+
+    def on_timeout(self):
+        c0 = self.c0
+        c1 = self.c1
+        if c0.index < c1.index:
+            i0 = c0.index
+            i1 = c1.index
+        else:
+            i1 = c0.index
+            i0 = c1.index
+        log.warn(0, '*%d bridge *%d timeout', i0, i1)
+        self.close()
+
 
     def forward(self, rc, wc):
+        add_timer(self.timer, EXPIRE_TIME)
         log.trace(0, 'recv: *%d(%s)    send: *%d(%s)',
                   rc.index, rc.addr.text, wc.index, wc.addr.text)
 

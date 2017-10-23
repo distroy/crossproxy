@@ -93,10 +93,12 @@ _lvl_map.update({
 class Log(object):
     _use_stderr = True
     _show_pid = True
+    _prog = ''
 
     def __init__(self):
         self.__fd = -1
         self.__level = LVL_DEFAULT
+        self._prog = os.path.basename(sys.argv[0])
 
     def __del__(self):
         self.done()
@@ -142,6 +144,9 @@ class Log(object):
         self.__level = l
         return 0
 
+    def set_proc(self, prog):
+        self._proc_name = prog
+
     def dup_stderr(self):
         if self.__fd != -1:
             os.dup2(self.__fd, sys.stderr.fileno())
@@ -163,7 +168,7 @@ class Log(object):
         depth += 1
         stack = inspect.stack()
         if depth > 0 and depth < len(stack) - 1:
-            stack = stack[depth : ]
+            stack = stack[depth:]
 
         buff = []
         for frame in stack:
@@ -186,7 +191,7 @@ class Log(object):
             fn_name = '.'.join([cls_name, fn_name])
             fn_args = fn_args[1:]
 
-        code_list = frame[4] # eg: ['    A().test()\n']
+        code_list = frame[4]  # eg: ['    A().test()\n']
 
         return {
             'file': file_path,
@@ -256,7 +261,10 @@ class Log(object):
         buff.append(log_info['name'])
         # buff.append(']')
 
-        if self._show_pid:
+        if self._show_pid and self._prog:
+            buff.append(' ')
+            buff.append('%s:%d#%d' % (self._prog, os.getpid(), 0))
+        elif self._show_pid:
             buff.append(' ')
             buff.append('%d#%d' % (os.getpid(), 0))
 
@@ -306,5 +314,7 @@ def _init():
             l = len(info['name'])
     for info in _lvl_infos:
         info['name'] = info['name'].rjust(l)
+
+
 _init()
 del _init

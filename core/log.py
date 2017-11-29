@@ -91,13 +91,17 @@ _lvl_map.update({
 
 
 class Log(object):
+    __fd = -1
+    __level = LVL_DEFAULT
+    _prog = ''
     _use_stderr = True
     _show_pid = True
     _prog = ''
+    _path = ''
+    _name = ''
+    _file_limit = 100 << 20
 
     def __init__(self):
-        self.__fd = -1
-        self.__level = LVL_DEFAULT
         self._prog = os.path.basename(sys.argv[0])
 
     def __del__(self):
@@ -107,19 +111,41 @@ class Log(object):
         global WORK_PATH
         WORK_PATH = os.path.abspath(path)
 
-    def init(self, path=''):
-        if path != '':
+    def init(self, path='', name=''):
+        if path != '' and name != '':
             path = os.path.abspath(path)
-            flag = os.O_CREAT | os.O_RDWR | os.O_APPEND | os.O_SYNC
-            self.__fd = os.open(path, flag, 0644)
+            if not os.path.exists(path):
+                os.makedirs(path, 0777)
+            self._path = path
+            self._name = name
+            self.__open_file()
 
         self.__class__._show_pid = True
         self.trace(0, 'init log: %s', path)
 
     def done(self):
-        if -1 != self.__fd and self.__fd != None and os != None:
+        if self.__fd != -1:
             os.close(self.__fd)
             self.__fd = -1
+
+    def __open_file(self):
+        if not self._path or not self._name:
+            return
+        path = os.path.join(self._path, '%s.log' % self._name)
+        if os.path.exists(path) and os.path.getsize(path) > self._file_limit:
+            try:
+                os.rename(path, path + '.1')
+            except Exception as exc:
+                self.__error_core_print(lvl=LVL_ERROR, depth=1, exc=0,
+                                        fmt='os.rename() fail', args=[])
+
+            if self.__fd != -1:
+                os.close(self.__fd)
+                self.__fd = -1
+
+        if self.__fd == -1:
+            flag = os.O_CREAT | os.O_RDWR | os.O_APPEND | os.O_SYNC
+            self.__fd = os.open(path, flag, 0644)
 
     def __to_level(self, lvl):
         try:
@@ -246,6 +272,10 @@ class Log(object):
         return self.__error_core(lvl=lvl, depth=1, exc=exc, fmt=fmt, args=args)
 
     def __error_core(self, lvl=0, depth=0, exc=0, fmt='', args=[]):
+        self.__error_core_print(lvl, depth + 1, exc, fmt, args)
+        self.__open_file()
+
+    def __error_core_print(self, lvl=0, depth=0, exc=0, fmt='', args=[]):
         fd = self.__fd
         buff = []
 

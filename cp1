@@ -50,8 +50,7 @@ def main(opts, args):
 
     path = os.path.split(__file__)[0]
     log.set_work_path(path)
-    path = '%s/crossproxy.log' % path
-    log.init(path)
+    log.init('%s/log' % path, 'crossproxy')
 
     if not opts.debug:
         daemon.daemon()

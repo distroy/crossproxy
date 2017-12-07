@@ -99,6 +99,7 @@ class Log(object):
     _prog = ''
     _path = ''
     _name = ''
+    _full_path = ''
     _file_limit = 100 << 20
 
     def __init__(self):
@@ -118,6 +119,7 @@ class Log(object):
                 os.makedirs(path, 0777)
             self._path = path
             self._name = name
+            self._full_path = os.path.join(path, '%s.log' % name)
             self.__open_file()
 
         self.__class__._show_pid = True
@@ -129,9 +131,15 @@ class Log(object):
             self.__fd = -1
 
     def __open_file(self):
-        if not self._path or not self._name:
+        if not self._full_path:
             return
-        path = os.path.join(self._path, '%s.log' % self._name)
+
+        if self.get_file_size() > self._file_limit:
+            if self.__fd != -1:
+                os.close(self.__fd)
+                self.__fd = -1
+
+        path = self._full_path
         if os.path.exists(path) and os.path.getsize(path) > self._file_limit:
             try:
                 os.rename(path, path + '.1')
@@ -139,13 +147,20 @@ class Log(object):
                 self.__error_core_print(lvl=LVL_ERROR, depth=1, exc=0,
                                         fmt='os.rename() fail', args=[])
 
-            if self.__fd != -1:
-                os.close(self.__fd)
-                self.__fd = -1
-
         if self.__fd == -1:
             flag = os.O_CREAT | os.O_RDWR | os.O_APPEND | os.O_SYNC
             self.__fd = os.open(path, flag, 0644)
+
+    def get_file_size(self):
+        if self.__fd == -1:
+            return 0
+        try:
+            stat = os.fstat(self.__fd)
+        except Exception as exc:
+            self.__error_core_print(lvl=LVL_ERROR, depth=1, exc=0,
+                                    fmt='os.fstat() fail', args=[])
+            return 0
+        return stat.st_size
 
     def __to_level(self, lvl):
         try:

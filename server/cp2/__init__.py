@@ -90,7 +90,7 @@ class Enity(object):
 
         timestamp = int(time.time())
         rand = '%x_%d' % (random.randint(0, 0xffffffff), get_sequence())
-        md5 = hashlib.md5('|'.join([self.secret, timestamp, rand])).hexdigest()
+        md5 = hashlib.md5('|'.join([self.secret, str(timestamp), rand])).hexdigest()
 
         msg = Message(['connect req', self.key,  timestamp, rand, md5])
         log.debug(0, '*%d send message: %s', c.index, msg)

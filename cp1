@@ -58,13 +58,11 @@ def main(opts, args):
 
     if not opts.debug:
         daemon.daemon()
+        log.dup_stderr()
 
     if not init_event():
         log.error(0, 'init event module failed')
         return -1
-
-    if not opts.debug:
-        log.dup_stderr()
 
     e.init()
     log.info(0, 'start success')

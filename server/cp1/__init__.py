@@ -217,9 +217,15 @@ class Enity(object):
             self.send_msg(['cross rsp', 'error', 'empty connect key'])
             return
 
-        timestamp = msg.get(2)
+        now = int(time.time())
+        timestamp = int(msg.get(2))
         rand = msg.get(3)
-        md5 = hashlib.md5('|'.join([self.secret, timestamp, rand])).hexdigest()
+        if abs(now - timestamp) > 30:
+            log.error('invalid timestamp. msg:%s', msg)
+            self.send_msg(['cross rsp', 'error', 'invalid timestamp'])
+            return
+
+        md5 = hashlib.md5('|'.join([self.secret, str(timestamp), rand])).hexdigest()
 
         if md5 != msg.get(4):
             log.error('check auth fail. msg:%s, expected auth:%s', msg, md5)

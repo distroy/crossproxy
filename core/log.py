@@ -140,6 +140,11 @@ class Log(object):
                 self.__fd = -1
 
         path = self._full_path
+        if not os.path.exists(path):
+            if self.__fd != -1:
+                os.close(self.__fd)
+                self.__fd = -1
+
         if os.path.exists(path) and os.path.getsize(path) > self._file_limit:
             try:
                 os.rename(path, path + '.1')

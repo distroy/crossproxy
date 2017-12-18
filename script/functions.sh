@@ -17,20 +17,22 @@ function start_cp0() {
 
 function start_cp1() {
     local key="$1"
-    local proxy="$2"
-    local target="$3"
+    local secret="$2"
+    local proxy="$3"
+    local target="$4"
     if [[ "$target" == "" ]]; then
         local target='127.0.0.1:22'
     fi
     local num=$(ps f -fj -e | grep -w $CP1 | grep "$proxy" | grep -w "$key" | grep -v grep | wc -l)
     if (( num == 0 )); then
-        ./$CP1 -k "$key" -p "$proxy" -t "$target"
+        ./$CP1 -k "$key" -s "$secret" -p "$proxy" -t "$target"
     fi
 }
 
 function start_cp2() {
     local key="$1"
-    local proxy="$2"
-    local listen="$3"
-    ./$CP2 -k "$key" -p "$proxy" -l "$listen" &> /dev/null
+    local secret="$2"
+    local proxy="$3"
+    local listen="$4"
+    ./$CP2 -k "$key" -s "$secret" -p "$proxy" -l "$listen" &> /dev/null
 }

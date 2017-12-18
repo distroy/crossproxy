@@ -25,7 +25,7 @@ from server import cp1 as server
 
 def get_options():
     import optparse
-    parser = optparse.OptionParser(version = "%prog (distroy) 0.1")
+    parser = optparse.OptionParser(version="%prog (distroy) 0.1")
 
     parser.add_option('-d', '--debug', dest='debug', action='store_true',
                       default=False, help='run with debug')
@@ -36,6 +36,7 @@ def get_options():
                       metavar='<log level>', help='log level, default: debug')
     parser.add_option('-p', '--proxy', dest='proxy', default='127.0.0.1:8000',
                       metavar='<address>', help='proxy address, [host:port], default: 127.0.0.1:8000')
+    parser.add_option('-s', '--secret', dest='secret', metavar='<secret>', help='secret')
     parser.add_option('-t', '--target', dest='target', default='127.0.0.1:22',
                       metavar='<address>', help='target address, [[host]:port], default: 127.0.0.1:22')
 
@@ -43,10 +44,13 @@ def get_options():
     return opts, args
 
 
-
 def main(opts, args):
     if log.set_level(opts.log) != 0:
         log.error(0, 'invalid log level: %s', opts.log)
+
+    e = server.Enity()
+    if not e.set_opts(opts):
+        return -1
 
     path = os.path.split(__file__)[0]
     log.set_work_path(path)
@@ -59,21 +63,10 @@ def main(opts, args):
         log.error(0, 'init event module failed')
         return -1
 
-    proxy = Addr()
-    target = Addr()
-    if not proxy.parse(opts.proxy):
-        return -1
-    if not target.parse(opts.target):
-        return -1
-    if not opts.key:
-        return -1
-
     if not opts.debug:
         log.dup_stderr()
 
-    e = server.Enity(proxy, target, opts.key)
     e.init()
-
     log.info(0, 'start success')
 
     last = int(time.time())

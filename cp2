@@ -34,6 +34,7 @@ def get_options():
                       metavar='<address>', help='listen address, [[host:]port], default: 0.0.0.0:8001')
     parser.add_option('-L', '--log', dest='log', default='debug',
                       metavar='<log level>', help='log level, default: debug')
+    parser.add_option('-s', '--secret', dest='secret', metavar='<secret>', help='secret')
     parser.add_option('-p', '--proxy', dest='proxy', default='127.0.0.1:8000',
                       metavar='<address>', help='proxy address, [host:port], default: 127.0.0.1:8000')
 
@@ -69,12 +70,12 @@ def main(opts, args):
         l.close()
         l = None
 
+    if not opts.debug:
+        daemon.daemon()
+
     if not init_event():
         log.error(0, 'init event module failed')
         return -1
-
-    if not opts.debug:
-        daemon.daemon()
 
     if not opts.debug:
         # may be failed in cygwin, wait minutes

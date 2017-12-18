@@ -253,8 +253,8 @@ class Enity(object):
             self.close()
 
     def do_connect(self, msg):
-        key0 = msg.get(1)
-        if not key0:
+        rkey = msg.get(1)
+        if not rkey:
             log.error(0, 'invalid message: %s', msg)
             return
 
@@ -268,17 +268,21 @@ class Enity(object):
             self.send_msg(['connect rsp', 'error', 'has connected. key:%s' % self.connect_key])
             return
 
-        if not REGISTER.has_key(key0):
-            log.error(0, 'can not find the register. key:%s', key0)
-            self.send_msg(['connect rsp', 'error', 'can not find the register. key:%s' % key0])
+        if not REGISTER.has_key(rkey):
+            log.error(0, 'can not find the register. key:%s', rkey)
+            self.send_msg(['connect rsp', 'error', 'can not find the register. key:%s' % rkey])
             return
 
-        key1 = '%s_%08x' % (time.strftime('%Y%m%d%H%M%S'), get_sequence())
-        CONNECT[key1] = self
-        self.connect_key = key1
+        ckey = '%s_%08x' % (time.strftime('%Y%m%d%H%M%S'), get_sequence())
+        CONNECT[ckey] = self
+        self.connect_key = ckey
 
-        e = REGISTER[key0]
-        e.send_msg(['cross req', key1])
+        timestamp = msg.get(2)
+        rand = msg.get(3)
+        md5 = msg.get(4)
+
+        e = REGISTER[rkey]
+        e.send_msg(['cross req', ckey, timestamp, rand, md5])
 
 
     def do_cross(self, msg):

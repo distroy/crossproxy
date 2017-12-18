@@ -9,7 +9,7 @@ import struct
 
 
 class Message(object):
-    def __init__(self, msg = [], seq = 0):
+    def __init__(self, msg=[], seq=0):
         if isinstance(msg, str):
             msg = [msg]
         elif isinstance(msg, Message):
@@ -31,16 +31,17 @@ class Message(object):
     def get_sequence(self):
         return self.__seq
 
-    def get(self, idx):
+    def get(self, idx=None):
+        if idx is None:
+            return self__msg[:]
         if len(self.__msg) < idx + 1:
             return ''
-        return self.__msg[idx]
+        return str(self.__msg[idx])
 
     def set(self, idx, val):
         while len(self.__msg) < idx + 1:
             self.__msg.append('')
         self.__msg[idx] = val
-
 
     def encode(self):
         msg = self.__msg
@@ -57,6 +58,7 @@ class Message(object):
         pack('I', self.__seq)
         pack('B', len(msg))
         for i in msg:
+            i = str(i)
             l = len(i)
             pack('H', l)
             pack('%ds' % l, i)

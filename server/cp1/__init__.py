@@ -5,6 +5,7 @@
 #
 
 
+import hashlib
 import time
 import sys
 import struct
@@ -24,23 +25,44 @@ HEARTBEAT_INTERVAL = 30
 
 
 class Enity(object):
-    def __init__(self, proxy, target, key):
+    def __init__(self):
         self.DO_MAP = {
             'heartbeat rsp': Enity.do_heartbeat,
             'register rsp': Enity.do_register,
             'cross req': Enity.do_cross,
         }
 
+    def set_opts(self, opts):
+        proxy = Addr()
+        target = Addr()
+        if not proxy.parse(opts.proxy):
+            log.error(0, 'invalid proxy address. %s', opts.proxy)
+            return None
+        if not target.parse(opts.target):
+            log.error(0, 'invalid target address. %s', opts.target)
+            return None
+        if not opts.key:
+            log.error(0, 'empty key.')
+            return None
+        if not opts.secret:
+            log.error(0, 'empty secret.')
+            return None
+
         self.conn = None
         self.addr_proxy = proxy
         self.addr_target = target
-        self.key = key
+        self.key = opts.key
+        self.secret = opts.secret
 
         self.addr_proxy.set_tcp()
         self.addr_target.set_tcp()
 
         self.timer = None
         self.registered = False
+        return self
+
+    def is_valid(self):
+        return self.addr_proxy and self.addr_target and addr.key
 
     def clear(self):
         if self.conn:
@@ -189,18 +211,28 @@ class Enity(object):
         log.debug(0, 'register succ. key:%s', self.key)
 
     def do_cross(self, msg):
-        key = msg.get(1)
-        if not key:
-            log.error(0, 'invalid message: %s', msg)
+        ckey = msg.get(1)
+        if not ckey:
+            log.error(0, 'invalid message. msg:%s', msg)
+            self.send_msg(['cross rsp', 'error', 'empty connect key'])
             return
 
-        t = Cross(self.addr_proxy, self.addr_target, key)
+        timestamp = msg.get(2)
+        rand = msg.get(3)
+        md5 = hashlib.md5('|'.join([self.secret, timestamp, rand])).hexdigest()
+
+        if md5 != msg.get(4):
+            log.error('check auth fail. msg:%s, expected auth:%s', msg, md5)
+            self.send_msg(['cross rsp', 'error', 'auth fail'])
+            return
+
+        t = Cross(self.addr_proxy, self.addr_target, ckey)
         t.init()
-        self.send_msg(['cross rsp', 'ok', key])
+        self.send_msg(['cross rsp', 'ok', ckey])
 
 
 class Cross(object):
-    def __init__(self, proxy, target, key):
+    def __init__(self, proxy, target, ckey):
         self.addr_proxy = proxy
         self.addr_target = target
 
@@ -210,7 +242,7 @@ class Cross(object):
         self.ready_proxy = False
         self.ready_target = False
 
-        self.key = key
+        self.key = ckey
 
     def init(self):
         self.conn_proxy = Connection()

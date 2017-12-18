@@ -5,7 +5,10 @@
 #
 
 
+import hashlib
 import struct
+import time
+import random
 
 from core import log
 from core.addr import Addr
@@ -28,20 +31,26 @@ get_sequence = closure(0, lambda x: (x + 1) & 0xfffffff)
 
 
 def get_handler(opts, args):
-    key = opts.key
+    if not opts.key:
+        log.error(0, 'empty key.')
+        return None
+    if not opts.secret:
+        log.error(0, 'empty secret.')
+        return None
     addr = Addr()
     if not addr.parse(opts.proxy):
-        log.error(0, 'invalid proxy address: %s', opts.proxy)
+        log.error(0, 'invalid proxy address. %s', opts.proxy)
         return None
-    return lambda c: Enity(c, key, addr)
+    return lambda c: Enity(c, addr, opts)
 
 
 class Enity(object):
 
-    def __init__(self, c, key, addr):
+    def __init__(self, c, addr, opts):
         self.conn = c
 
-        self.key = key
+        self.key = opts.key
+        self.secret = opts.secret
         self.addr_proxy = addr
 
         self.conn_proxy = Connection()
@@ -79,7 +88,11 @@ class Enity(object):
         c = self.conn_proxy
         log.debug(0, '*%d connect: %s', c.index, c.addr.text)
 
-        msg = Message(['connect req', self.key])
+        timestamp = int(time.time())
+        rand = '%x_%d' % (random.randint(0, 0xffffffff), get_sequence())
+        md5 = hashlib.md5('|'.join([self.secret, timestamp, rand])).hexdigest()
+
+        msg = Message(['connect req', self.key,  timestamp, rand, md5])
         log.debug(0, '*%d send message: %s', c.index, msg)
 
         buff = msg.encode()

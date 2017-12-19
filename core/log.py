@@ -165,6 +165,8 @@ class Log(object):
             self.__error_core_print(lvl=LVL_ERROR, depth=1, exc=0,
                                     fmt='os.fstat() fail', args=[])
             return 0
+        if stat.st_nlink <= 0:
+            return 0
         return stat.st_size
 
     def __to_level(self, lvl):
@@ -292,8 +294,8 @@ class Log(object):
         return self.__error_core(lvl=lvl, depth=1, exc=exc, fmt=fmt, args=args)
 
     def __error_core(self, lvl=0, depth=0, exc=0, fmt='', args=[]):
-        self.__error_core_print(lvl, depth + 1, exc, fmt, args)
         self.__open_file()
+        self.__error_core_print(lvl, depth + 1, exc, fmt, args)
 
     def __error_core_print(self, lvl=0, depth=0, exc=0, fmt='', args=[]):
         fd = self.__fd

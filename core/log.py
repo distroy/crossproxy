@@ -140,11 +140,6 @@ class Log(object):
                 self.__fd = -1
 
         path = self._full_path
-        if not os.path.exists(path):
-            if self.__fd != -1:
-                os.close(self.__fd)
-                self.__fd = -1
-
         if os.path.exists(path) and os.path.getsize(path) > self._file_limit:
             try:
                 os.rename(path, path + '.1')
@@ -165,9 +160,9 @@ class Log(object):
             self.__error_core_print(lvl=LVL_ERROR, depth=1, exc=0,
                                     fmt='os.fstat() fail', args=[])
             return 0
-        if stat.st_nlink <= 0:
-            return 0
-        return stat.st_size
+        if stat.st_nlink > 0:
+            return stat.st_size
+        return 0xffffffff
 
     def __to_level(self, lvl):
         try:

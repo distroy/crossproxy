@@ -5,11 +5,11 @@
 #
 
 
-import hashlib
 import time
 import sys
 import struct
 
+from core import auth
 from core import log
 from core.connection import Connection
 from core.timer import *
@@ -225,10 +225,10 @@ class Enity(object):
             self.send_msg(['cross rsp', 'error', 'invalid timestamp'])
             return
 
-        md5 = hashlib.md5('|'.join([self.secret, str(timestamp), rand])).hexdigest()
+        sign = auth.get_sign(self.secret, [timestamp, rand])
 
-        if md5 != msg.get(4):
-            log.error('check auth fail. msg:%s, expected auth:%s', msg, md5)
+        if sign != msg.get(4):
+            log.error('check auth fail. msg:%s, expected sign:%s', msg, sign)
             self.send_msg(['cross rsp', 'error', 'auth fail'])
             return
 

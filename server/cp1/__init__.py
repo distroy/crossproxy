@@ -223,20 +223,20 @@ class Enity(object):
         now = int(time.time())
         timestamp = int(msg.get(2))
         if abs(now - timestamp) > TIMESTAMP_INTERVAL:
-            log.error('invalid timestamp. msg:%s', msg)
+            log.error(0, 'invalid timestamp. msg:%s', msg)
             self.send_msg(['cross rsp', 'error', 'invalid timestamp', ckey])
             return
 
         rand = msg.get(3)
         if RAND_CACHE.has_key(rand):
-            log.error('duplicate rand str. msg:%s', msg);
+            log.error(0, 'duplicate rand str. msg:%s', msg);
             self.send_msg(['cross rsp', 'error', 'invalid rand', ckey])
             return
 
         sign = auth.get_sign(self.secret, [timestamp, rand])
 
         if sign != msg.get(4):
-            log.error('check auth fail. msg:%s, expected sign:%s', msg, sign)
+            log.error(0, 'check auth fail. msg:%s, expected sign:%s', msg, sign)
             self.send_msg(['cross rsp', 'error', 'auth fail', ckey])
             return
 

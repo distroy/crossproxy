@@ -22,7 +22,7 @@ def uint32(n):
 class Timer(object):
 
     def __init__(self):
-        self.__seq = get_sequence()
+        self._seq = get_sequence()
         self.handler = None
         self.pos = 0
 

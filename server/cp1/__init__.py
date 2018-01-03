@@ -22,6 +22,9 @@ from server.message import Message
 
 
 HEARTBEAT_INTERVAL = 30
+TIMESTAMP_INTERVAL = 30
+
+RAND_CACHE = {}
 
 
 class Enity(object):
@@ -219,18 +222,28 @@ class Enity(object):
 
         now = int(time.time())
         timestamp = int(msg.get(2))
-        rand = msg.get(3)
-        if abs(now - timestamp) > 30:
+        if abs(now - timestamp) > TIMESTAMP_INTERVAL:
             log.error('invalid timestamp. msg:%s', msg)
-            self.send_msg(['cross rsp', 'error', 'invalid timestamp'])
+            self.send_msg(['cross rsp', 'error', 'invalid timestamp', ckey])
+            return
+
+        rand = msg.get(3)
+        if RAND_CACHE.has_key(rand):
+            log.error('duplicate rand str. msg:%s', msg);
+            self.send_msg(['cross rsp', 'error', 'invalid rand', ckey])
             return
 
         sign = auth.get_sign(self.secret, [timestamp, rand])
 
         if sign != msg.get(4):
             log.error('check auth fail. msg:%s, expected sign:%s', msg, sign)
-            self.send_msg(['cross rsp', 'error', 'auth fail'])
+            self.send_msg(['cross rsp', 'error', 'auth fail', ckey])
             return
+
+        RAND_CACHE[rand] = 1
+        timer = Timer()
+        timer.handler = lambda: RAND_CACHE.pop(rand)
+        add_timer(timer, TIMESTAMP_INTERVAL * 2)
 
         t = Cross(self.addr_proxy, self.addr_target, ckey)
         t.init()

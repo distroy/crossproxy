@@ -61,8 +61,8 @@ class Enity(object):
         self.addr_proxy.set_tcp()
         self.addr_target.set_tcp()
 
-        self.t_send = None
-        self.t_recv = None
+        self.stimer = None
+        self.rtimer = None
         self.registered = False
         return self
 
@@ -73,14 +73,14 @@ class Enity(object):
         if self.conn:
             self.conn.close()
             self.conn = None
-        if self.t_send:
-            del_timer(self.t_send)
-            self.t_send.prev = self.t_send.next = None
-            self.t_send = None
-        if self.t_recv:
-            del_timer(self.t_recv)
-            self.t_recv.prev = self.t_recv.next = None
-            self.t_recv = None
+        if self.stimer:
+            del_timer(self.stimer)
+            self.stimer.prev = self.stimer.next = None
+            self.stimer = None
+        if self.rtimer:
+            del_timer(self.rtimer)
+            self.rtimer.prev = self.rtimer.next = None
+            self.rtimer = None
         self.registered = False
 
     def close(self):
@@ -93,7 +93,7 @@ class Enity(object):
             self.conn = Connection()
             if self.conn.connect(addr):
                 break
-            time.sleep(1)
+            time.sleep(3)
             # if not addr.next_sockaddr():
             #     sys.exit(-1)
 
@@ -102,22 +102,22 @@ class Enity(object):
         c.nonblocking()
         self.send_msg(['register req', self.key])
 
-        self.t_send = Timer()
-        self.t_send.handler = lambda: self.on_timer_send()
-        add_timer(self.t_send, HEARTBEAT_INTERVAL)
+        self.stimer = Timer()
+        self.stimer.handler = lambda: self.on_stimer()
+        add_timer(self.stimer, HEARTBEAT_INTERVAL)
 
-        self.t_recv = Timer()
-        self.t_recv.handler =lambda: self.on_timer_recv()
-        add_timer(self.t_recv, HEARTBEAT_TIMEOUT)
+        self.rtimer = Timer()
+        self.rtimer.handler =lambda: self.on_rtimer()
+        add_timer(self.rtimer, HEARTBEAT_TIMEOUT)
 
-    def on_timer_send(self):
+    def on_stimer(self):
         if not self.registered:
             self.close()
             return
-        add_timer(self.t_send, HEARTBEAT_INTERVAL)
+        add_timer(self.stimer, HEARTBEAT_INTERVAL)
         self.send_msg(['heartbeat req'])
 
-    def on_timer_recv(self):
+    def on_rtimer(self):
         log.warn(0, 'connect has close')
         self.close()
 
@@ -211,8 +211,8 @@ class Enity(object):
             log.error(0, 'invalid command. msg:%s', msg)
             return
 
-        add_timer(self.t_send, HEARTBEAT_INTERVAL)
-        add_timer(self.t_recv, HEARTBEAT_TIMEOUT)
+        add_timer(self.stimer, HEARTBEAT_INTERVAL)
+        add_timer(self.rtimer, HEARTBEAT_TIMEOUT)
         self.DO_MAP[cmd](self, msg)
 
     def do_heartbeat(self, msg):

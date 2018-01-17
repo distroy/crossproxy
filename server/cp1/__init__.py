@@ -21,6 +21,7 @@ from server.bridge import Bridge
 from server.message import Message
 
 
+HEARTBEAT_TIMEOUT = 120
 HEARTBEAT_INTERVAL = 30
 TIMESTAMP_INTERVAL = 30
 
@@ -60,7 +61,8 @@ class Enity(object):
         self.addr_proxy.set_tcp()
         self.addr_target.set_tcp()
 
-        self.timer = None
+        self.t_send = None
+        self.t_recv = None
         self.registered = False
         return self
 
@@ -71,10 +73,14 @@ class Enity(object):
         if self.conn:
             self.conn.close()
             self.conn = None
-        if self.timer:
-            del_timer(self.timer)
-            self.timer.prev = self.timer.next = None
-            self.timer = None
+        if self.t_send:
+            del_timer(self.t_send)
+            self.t_send.prev = self.t_send.next = None
+            self.t_send = None
+        if self.t_recv:
+            del_timer(self.t_recv)
+            self.t_recv.prev = self.t_recv.next = None
+            self.t_recv = None
         self.registered = False
 
     def close(self):
@@ -96,16 +102,24 @@ class Enity(object):
         c.nonblocking()
         self.send_msg(['register req', self.key])
 
-        self.timer = Timer()
-        self.timer.handler = lambda: self.on_timer()
-        add_timer(self.timer, HEARTBEAT_INTERVAL)
+        self.t_send = Timer()
+        self.t_send.handler = lambda: self.on_timer_send()
+        add_timer(self.t_send, HEARTBEAT_INTERVAL)
 
-    def on_timer(self):
+        self.t_recv = Timer()
+        self.t_recv.handler =lambda: self.on_timer_recv()
+        add_timer(self.t_recv, HEARTBEAT_TIMEOUT)
+
+    def on_timer_send(self):
         if not self.registered:
             self.close()
             return
-        add_timer(self.timer, HEARTBEAT_INTERVAL)
+        add_timer(self.t_send, HEARTBEAT_INTERVAL)
         self.send_msg(['heartbeat req'])
+
+    def on_timer_recv(self):
+        log.warn(0, 'connect has close')
+        self.close()
 
     def send(self):
         c = self.conn
@@ -197,7 +211,8 @@ class Enity(object):
             log.error(0, 'invalid command. msg:%s', msg)
             return
 
-        add_timer(self.timer, HEARTBEAT_INTERVAL)
+        add_timer(self.t_send, HEARTBEAT_INTERVAL)
+        add_timer(self.t_recv, HEARTBEAT_TIMEOUT)
         self.DO_MAP[cmd](self, msg)
 
     def do_heartbeat(self, msg):

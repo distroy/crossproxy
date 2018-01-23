@@ -23,7 +23,8 @@ class Bridge(object):
         c0.wev.handler = c1.rev.handler = lambda: self.forward(c1, c0)
 
         log.debug(0, '*%d connect: %s', c1.index, c1.addr.text)
-        log.info(0, '*%d bridge *%d connect', c0.index, c1.index)
+        log.info(0, 'bridge connect *%d(%s) *%d(%s)', c0.index,
+                 c0.addr.text, c1.index, c1.addr.text)
 
         del_conn(c0, WRITE_EVENT)
         del_conn(c1, WRITE_EVENT)
@@ -39,13 +40,8 @@ class Bridge(object):
     def on_timeout(self):
         c0 = self.c0
         c1 = self.c1
-        if c0.index < c1.index:
-            i0 = c0.index
-            i1 = c1.index
-        else:
-            i1 = c0.index
-            i0 = c1.index
-        log.warn(0, '*%d bridge *%d timeout', i0, i1)
+        log.warn(0, 'bridge timeout *%d(%s) *%d(%s)', c0.index,
+                 c0.addr.text, c1.index, c1.addr.text)
         self.close()
 
 

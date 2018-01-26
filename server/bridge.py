@@ -22,7 +22,7 @@ class Bridge(object):
         c0.rev.handler = c1.wev.handler = lambda: self.forward(c0, c1)
         c0.wev.handler = c1.rev.handler = lambda: self.forward(c1, c0)
 
-        log.debug(0, '*%d connect: %s', c1.index, c1.addr.text)
+        log.debug(0, '*%d(%s) connect', c1.index, c1.addr.text)
         log.info(0, 'bridge connect *%d(%s) *%d(%s)', c0.index,
                  c0.addr.text, c1.index, c1.addr.text)
 
@@ -57,7 +57,7 @@ class Bridge(object):
                 r, buff = rc.recv(4096)
             if r != 0:
                 if r == 1:
-                    log.debug(0, '*%d closed', rc.index)
+                    log.debug(0, '*%d(%s) closed', rc.index, rc.addr.text)
                 rc.rev.ready = False
                 break
             if not buff:
@@ -70,7 +70,7 @@ class Bridge(object):
             r, size = wc.send(buff)
             if r != 0:
                 if r == 1:
-                    log.debug(0, '*%d closed', wc.index)
+                    log.debug(0, '*%d(%s) closed', wc.index, wc.addr.text)
                 wc.wev.ready = False
                 break
             if not size:
@@ -81,13 +81,10 @@ class Bridge(object):
                 return
             buff = buff[size:]
 
-        if rc.index < wc.index:
-            i0 = rc.index
-            i1 = wc.index
-        else:
-            i1 = rc.index
-            i0 = wc.index
-        log.info(0, '*%d bridge *%d break', i0, i1)
+        c0 = self.c0
+        c1 = self.c1
+        log.info(0, 'bridge break *%d(%s) *%d(%s)', c0.index,
+                 c0.addr.text, c1.index, c1.addr.text)
         self.close()
 
     def close(self):

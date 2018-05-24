@@ -7,7 +7,7 @@ tags
 *.log
 *.vim
 *.stackdump
-/log/
+/log
 
 test[._]*
 

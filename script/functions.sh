@@ -39,6 +39,9 @@ function start_cp2() {
     local secret="$2"
     local proxy="$3"
     local listen="$4"
-    # echo $EXEC_CP2 -k "$key" -s "$secret" -p "$proxy" -l "$listen"
-    $EXEC_CP2 -k "$key" -s "$secret" -p "$proxy" -l "$listen" &> /dev/null
+    local num=$(ps f -fj -e | grep -w $CP2 | grep "$proxy" | grep -w "$key" | grep -v grep | wc -l)
+    if (( num == 0 )); then
+        # echo $EXEC_CP2 -k "$key" -s "$secret" -p "$proxy" -l "$listen"
+        $EXEC_CP2 -k "$key" -s "$secret" -p "$proxy" -l "$listen" &> /dev/null
+    fi
 }

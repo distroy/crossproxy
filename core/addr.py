@@ -75,7 +75,7 @@ class Addr(object):
         try:
             addr_infos = socket.getaddrinfo(arr[0], arr[1], *args)
         except Exception as exc:
-            log.error(exc, 'socket.getaddrinfo(%s) failed', text)
+            log.error(exc, 'socket.getaddrinfo(%s) fail', text)
             return None
         if not addr_infos:
             log.error(0, 'socket.getaddrinfo(%s) is empty', text)

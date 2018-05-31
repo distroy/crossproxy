@@ -48,7 +48,7 @@ class Event(object):
         # try:
         #     self.handler()
         # except Exception as exc:
-        #     log.error(exc, '*%d process event %s failed', c.index, ev)
+        #     log.error(exc, '*%d process event %s fail', c.index, ev)
 
 
 _obj = None

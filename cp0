@@ -68,7 +68,7 @@ def main(opts, args):
         l = None
 
     if not init_event():
-        log.error(0, 'init event module failed')
+        log.error(0, 'init event module fail')
         return -1
 
     if not opts.debug:

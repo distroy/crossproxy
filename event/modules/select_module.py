@@ -94,7 +94,7 @@ class Select(object):
         try:
             r, w, x = select.select(self.r_list, self.w_list, self.x_list, wait_time)
         except Exception as exc:
-            log.error(exc, 'select() failed')
+            log.error(exc, 'select() fail')
             exit(-1)
             return
 

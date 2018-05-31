@@ -26,7 +26,7 @@ def create_socket(addr):
     try:
         s = socket.socket(addr.family, addr.socktype, addr.proto)
     except Exception as exc:
-        log.error(exc, 'socket.socket(%s) failed', addr.text)
+        log.error(exc, 'socket.socket(%s) fail', addr.text)
         return None
 
     log.trace(0, 'socket create: %d(%s) family:%r socktype:%r proto:%r',
@@ -40,7 +40,7 @@ def close_socket(s):
             s.shutdown(socket.SHUT_RDWR)
             log.trace(0, 'socket close: %d', s.fileno())
     except Exception as exc:
-        log.error(exc, 'socket.shutdown(%d) failed', s.fileno())
+        log.error(exc, 'socket.shutdown(%d) fail', s.fileno())
 
 
 class Connection():
@@ -104,7 +104,7 @@ class Connection():
         try:
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         except Exception as exc:
-            log.error(exc, 'reuse(%d) failed', s.fileno())
+            log.error(exc, 'reuse(%d) fail', s.fileno())
             return None
 
         log.trace(0, 'connection reuse *%d', self.index)
@@ -115,7 +115,7 @@ class Connection():
         try:
             s.setblocking(1)
         except Exception as exc:
-            log.error(exc, 'blocking(%d) failed', s.fileno())
+            log.error(exc, 'blocking(%d) fail', s.fileno())
             return None
 
         log.trace(0, 'connection blocking *%d', self.index)
@@ -126,7 +126,7 @@ class Connection():
         try:
             s.setblocking(0)
         except Exception as exc:
-            log.error(exc, 'nonblocking(%d) failed', s.fileno())
+            log.error(exc, 'nonblocking(%d) fail', s.fileno())
             return None
 
         log.trace(0, 'connection nonblocking *%d', self.index)
@@ -144,7 +144,7 @@ class Connection():
         except Exception as exc:
             err = exc.errno
             if err != errno.EINPROGRESS:
-                log.error(exc, 'connect(%s) failed', addr.text)
+                log.error(exc, 'connect(%s) fail', addr.text)
                 return None
 
         self.addr = addr
@@ -174,7 +174,7 @@ class Connection():
             err = exc.errno
             if err == errno.EAGAIN or err == errno.EINTR:
                 return 0, ''
-            log.error(exc, 'recv() from %s failed', self.addr.text)
+            log.error(exc, 'recv() from %s fail', self.addr.text)
             return -1, -1
 
     def send(self, buff, *args):
@@ -187,5 +187,5 @@ class Connection():
             err = exc.errno
             if err == errno.EAGAIN or err == errno.EINTR:
                 return 0, 0
-            log.error(exc, 'send() to %s failed', self.addr.text)
+            log.error(exc, 'send() to %s fail', self.addr.text)
             return -1, -1

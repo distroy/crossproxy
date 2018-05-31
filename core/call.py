@@ -15,7 +15,7 @@ def call(module_name, function_name, *args, **kargs):
         try:
             m = __import__(module_name)
         except Exception as exc:
-            log.error(exc, '__import__(%s) failed', module_name)
+            log.error(exc, '__import__(%s) fail', module_name)
             return
 
         name = root
@@ -24,7 +24,7 @@ def call(module_name, function_name, *args, **kargs):
                 m = getattr(m, i)
                 name = '%s.%s' % (name, i)
             except Exception as exc:
-                log.error(exc, 'getattr(%s, %s) failed', name, i)
+                log.error(exc, 'getattr(%s, %s) fail', name, i)
                 return
         return m
 
@@ -33,7 +33,7 @@ def call(module_name, function_name, *args, **kargs):
         try:
             m = import_module(module_name)
         except Exception as exc:
-            log.error(exc, 'importlib.import_module(%s) failed', module_name)
+            log.error(exc, 'importlib.import_module(%s) fail', module_name)
             return
     else:
         m = module_name
@@ -41,7 +41,7 @@ def call(module_name, function_name, *args, **kargs):
     try:
         f = getattr(m, function_name)
     except Exception as exc:
-        log.error(exc, 'getattr(%s, %s) failed', module_name, function_name)
+        log.error(exc, 'getattr(%s, %s) fail', module_name, function_name)
         return
 
     return f(*args, **kargs)

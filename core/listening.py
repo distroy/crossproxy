@@ -49,10 +49,10 @@ class Listening(Connection):
         except IOError as exc:
             err = exc.errno
             if err != errno.EAGAIN and err != errno.EINTR:
-                log.error(exc, 'accept() failed')
+                log.error(exc, 'accept() fail')
             return None
         except Exception as exc:
-            log.error(exc, 'accept() failed')
+            log.error(exc, 'accept() fail')
             return None
 
         c = Connection()
@@ -83,14 +83,14 @@ class Listening(Connection):
         try:
             s.bind(addr.sockaddr)
         except Exception as exc:
-            log.error(exc, '*%d bind(%s) failed', self.index, addr.text)
+            log.error(exc, '*%d bind(%s) fail', self.index, addr.text)
             self.close()
             return None
 
         try:
             s.listen(backlog)
         except Exception as exc:
-            log.error(exc, '*%d listen(%s) failed', self.index, addr.text)
+            log.error(exc, '*%d listen(%s) fail', self.index, addr.text)
             self.close()
             return None
 

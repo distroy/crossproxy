@@ -81,12 +81,15 @@ def main(opts, args):
     if not opts.debug:
         # may be failed in cygwin, wait minutes
         l = Listening()
-        if not l.listen(addr):
-            return -1
+        while not l.listen(addr):
+            time.sleep(1)
 
     l.handler = handler
     add_conn(l, READ_EVENT)
 
+    daemon.process(work_run)
+
+def work_run():
     log.info(0, 'start success')
 
     last = int(time.time())

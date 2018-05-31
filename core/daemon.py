@@ -29,12 +29,15 @@ def daemon():
     os.close(fd)
     log.info(0, 'daemon process run')
 
+def process(child_run):
     while True:
         pid = os.fork()
         if pid == 0:  # child
             atexit.register(log.info, 0, 'process exit')
             signal.signal(signal.SIGTERM, lambda sig, stack: exit(0))
+            child_run()
             return
+
         pid, status = os.waitpid(pid, 0)
         log.warn(0, 'child:%d exit with code: %d', pid, status)
         if status != 0:

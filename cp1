@@ -64,6 +64,9 @@ def main(opts, args):
         log.error(0, 'init event module fail')
         return -1
 
+    daemon.process(work_run)
+
+def work_run():
     e.init()
     log.info(0, 'start success')
 

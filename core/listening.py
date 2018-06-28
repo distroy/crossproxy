@@ -59,6 +59,7 @@ class Listening(Connection):
         c.socket(s)
         c.listening = self
         c.nonblocking()
+        c.keepalive()
 
         c.addr = Addr(self.addr)
         c.addr.parse_sockaddr(sockaddr)

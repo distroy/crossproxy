@@ -150,6 +150,8 @@ class Connection():
         self.addr = addr
 
         log.trace(0, 'connection connect *%d: %s', self.index, addr.text)
+
+        self.keepalive()
         return self
 
     def connect_nonblocking(self, addr):
@@ -189,3 +191,14 @@ class Connection():
                 return 0, 0
             log.error(exc, 'send() to %s fail', self.addr.text)
             return -1, -1
+
+    def keepalive(self, interval=30):
+        s = self.socket()
+        try:
+            s.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, interval)
+        except Exception as exc:
+            log.error(exc, 'keepalive(%d) fail', s.fileno())
+            return None
+
+        log.trace(0, 'connection keepalive *%d', self.index)
+        return self

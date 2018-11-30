@@ -20,6 +20,7 @@ from event.event import *
 get_sequence = closure(0, lambda x: (x + 1) & 0xfffffff)
 
 is_cygwin = platform.system().lower().find('cygwin') != -1
+is_darwin = platform.system().lower().find('darwin') != -1
 
 
 def create_socket(addr):
@@ -204,6 +205,8 @@ class Connection():
     def keepalive(self, interval=30):
         s = self.socket()
         try:
+            # if not is_darwin:
+            #     s.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, interval)
             s.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, interval)
         except Exception as exc:
             log.error(exc, 'keepalive(%d) fail', s.fileno())

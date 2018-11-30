@@ -41,6 +41,7 @@ def get_handler(opts, args):
     if not addr.parse(opts.proxy):
         log.error(0, 'invalid proxy address. %s', opts.proxy)
         return None
+    addr.set_tcp()
     return lambda c: Enity(c, addr, opts)
 
 

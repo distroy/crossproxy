@@ -35,12 +35,21 @@ def create_socket(addr):
 
 
 def close_socket(s):
+    if not isinstance(s, socket.socket):
+        log.warn('it is not socket')
+        return
+
     try:
-        if isinstance(s, socket.socket):
-            s.shutdown(socket.SHUT_RDWR)
-            log.trace(0, 'socket close: %d', s.fileno())
+        s.shutdown(socket.SHUT_RDWR)
+        log.trace(0, 'socket close: %d', s.fileno())
+        return
     except Exception as exc:
         log.error(exc, 'socket.shutdown(%d) fail', s.fileno())
+    try:
+        s.close()
+        return
+    except Exception as exc:
+        log.error(exc, 'socket.close(%d) fail', s.fileno())
 
 
 class Connection():

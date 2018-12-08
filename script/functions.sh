@@ -24,6 +24,10 @@ function ps_func() {
     esac
 }
 
+function print_cp() {
+    ps_func | grep python | grep cp
+}
+
 function start_cp0() {
     local listen="$1"
     $EXEC_CP0 -l "$listen" &> /dev/null
